@@ -53,6 +53,18 @@ std::string Ram(int pid);
 std::string Uid(int pid);
 std::string User(int pid);
 long int UpTime(int pid);
+
+// New to read the process cpu usage
+struct processUsage{
+  float utime;
+  float stime;
+  float cutime;
+  float cstime;
+  float starttime;
+};
+
+processUsage CpuUtilForProc(int pid);
+
 };  // namespace LinuxParser
 
 #endif

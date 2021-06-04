@@ -121,18 +121,96 @@ long LinuxParser::UpTime() {
   return finalTime;
 } 
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
+// Read and return the number of jiffies for the system
+long LinuxParser::Jiffies() { 
+  string line, cpu;
+  long user, nice, system, irq, softirq, steal, guest, guest_nice;
+  long idle, iowait;
+  long jiffies;
 
-// TODO: Read and return the number of active jiffies for a PID
+  std::ifstream fs (kProcDirectory + kStatFilename);
+  if (fs.is_open()){
+    std::getline(fs, line);
+    std::istringstream ls(line);
+
+    ls >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal
+      >> guest >> guest_nice;
+
+    jiffies = (user - guest) + (nice - guest_nice) + idle + iowait + system + irq + softirq +
+        guest + guest_nice;
+  }
+  
+  return jiffies;
+}
+
+// Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
+long LinuxParser::ActiveJiffies(int pid) {
+  string line;
+  long activeJiffies;
+  const int UTIME_INDEX = 13;
+  const int STIME_INDEX = 14;
+  const int CUTIME_INDEX = 15;
+  const int CSTIME_INDEX = 16;
+  const int STARTTIME_INDEX = 21;
 
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+  std::ifstream fs (kProcDirectory + std::to_string(pid) + kStatFilename);
 
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
+  if (fs.is_open()){
+    std::getline(fs, line);
+    std::istringstream ls(line);
+
+    // to vector
+    std::istream_iterator<string> begin(ls);
+    std::istream_iterator<string> end;
+    std::vector<string> items(begin, end);
+
+    activeJiffies = (std::stol(items[UTIME_INDEX]) / sysconf(_SC_CLK_TCK) + 
+        std::stol(items[STIME_INDEX]) / sysconf(_SC_CLK_TCK) + 
+        std::stol(items[CUTIME_INDEX]) / sysconf(_SC_CLK_TCK) +
+        std::stol(items[CSTIME_INDEX])  / sysconf(_SC_CLK_TCK) + 
+        std::stol(items[STARTTIME_INDEX]) / sysconf(_SC_CLK_TCK)) * 60 ;
+  }
+  return activeJiffies;  
+ }
+
+// Read and return the number of active jiffies for the system
+long LinuxParser::ActiveJiffies() { 
+  string line;
+  long up = 0;
+  long idle = 0;
+  long activeJiffies = 0;
+
+  std::ifstream fs( kProcDirectory + kUptimeFilename);return 0; 
+  if (fs.is_open()){
+    std::getline(fs, line);
+    std::istringstream ls(line);
+    ls >> up >> idle;
+
+    // 1 sec = 60 jiffies if i am not wrong
+    activeJiffies = (up - idle) * 60;
+  }
+  return activeJiffies;
+}
+
+// Read and return the number of idle jiffies for the system
+long LinuxParser::IdleJiffies() { 
+  string line;
+  long up = 0;
+  long idle = 0;
+  long idleJiffies = 0;
+
+  std::ifstream fs( kProcDirectory + kUptimeFilename);return 0; 
+  if (fs.is_open()){
+    std::getline(fs, line);
+    std::istringstream ls(line);
+    ls >> up >> idle;
+
+    // 1 sec = 60 jiffies if i am not wrong
+    idleJiffies = idle * 60;
+  }
+  return idleJiffies;
+}
 
 // Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { 
@@ -168,6 +246,34 @@ vector<string> LinuxParser::CpuUtilization() {
     }
   }
   return cpu;
+}
+LinuxParser::processUsage LinuxParser::CpuUtilForProc(int pid){
+  LinuxParser::processUsage procUse;
+  string line;
+
+  const int UTIME_INDEX = 13;
+  const int STIME_INDEX = 14;
+  const int CUTIME_INDEX = 15;
+  const int CSTIME_INDEX = 16;
+  const int STARTTIME_INDEX = 21;
+
+  std::ifstream fs(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (fs.is_open()){
+    std::getline(fs, line);
+    std::istringstream ls (line);
+
+    // to vector
+    std::istream_iterator<string> begin(ls);
+    std::istream_iterator<string> end;
+    std::vector<string> items(begin, end);
+
+    procUse.utime = std::stol(items[UTIME_INDEX]) / sysconf(_SC_CLK_TCK);
+    procUse.stime = std::stol(items[STIME_INDEX]) / sysconf(_SC_CLK_TCK);
+    procUse.cutime = std::stol(items[CUTIME_INDEX]) / sysconf(_SC_CLK_TCK);
+    procUse.cstime = std::stol(items[CSTIME_INDEX]) / sysconf(_SC_CLK_TCK);
+    procUse.starttime = std::stol(items[STARTTIME_INDEX]) / sysconf(_SC_CLK_TCK);
+  }
+  return procUse;
 }
 
 // Read and return the total number of processes
@@ -272,7 +378,7 @@ string LinuxParser::User(int pid) {
   return usr;
 }
 
-// TODO: Read and return the uptime of a process
+// Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::UpTime(int pid) { 
   long uptime = 0;
@@ -280,12 +386,16 @@ long LinuxParser::UpTime(int pid) {
   const int START_TIME_INDEX = 22;
 
   std::ifstream fs(kProcDirectory + std::to_string(pid)+ kStatFilename);
-  std::getline(fs, line);
-  std::istringstream ls(line);
-  std::istream_iterator<string> begin(ls);
-  std::istream_iterator<string> end;
-  std::vector<string> items(begin, end);
-  
-  uptime = std::stol(items[START_TIME_INDEX -1 ]) / sysconf(_SC_CLK_TCK);
+  if (fs.is_open()){
+    std::getline(fs, line);
+    std::istringstream ls(line);
+
+    // to vector
+    std::istream_iterator<string> begin(ls);
+    std::istream_iterator<string> end;
+    std::vector<string> items(begin, end);
+    
+    uptime = std::stol(items[START_TIME_INDEX -1 ]) / sysconf(_SC_CLK_TCK);
+  }
   return uptime;
 }
