@@ -7,5 +7,5 @@
 int main() {
   System system;
 //  NCursesDisplay::Display(system);
-  std::cout << LinuxParser::User(75508) << "\n";
+  std::cout << LinuxParser::UpTime(75508) << "\n";
 }
