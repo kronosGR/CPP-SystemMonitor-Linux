@@ -16,7 +16,7 @@ Process::Process(int pid){
 
 // Return this process's ID
 int Process::Pid() {
-   return pid; 
+   return this->pid; 
   }
 
 // Return this process's CPU utilization
@@ -37,8 +37,11 @@ string Process::Command() {
   return LinuxParser::Command(pid);
 }
 
-// TODO: Return this process's memory utilization
-string Process::Ram() { return string(); }
+// Return this process's memory utilization
+string Process::Ram() { 
+  string ram = LinuxParser::Ram(pid);
+  return ram;
+}
 
 // Return the user (name) that generated this process
 string Process::User() { 
@@ -50,6 +53,8 @@ long int Process::UpTime() {
   return LinuxParser::UpTime(pid);
  }
 
-// TODO: Overload the "less than" comparison operator for Process objects
+// Overload the "less than" comparison operator for Process objects
 // REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a[[maybe_unused]]) const { return true; }
+bool Process::operator<(Process const& a) const {
+   return a.usage < usage;
+}
