@@ -25,9 +25,9 @@ float Process::CpuUtilization() {
   
   LinuxParser::processUsage procUse = LinuxParser::CpuUtilForProc(pid);
   long up = LinuxParser::UpTime();
-  float total = procUse.utime + procUse.stime + procUse.cutime + procUse.cstime;
-  float dif = up - procUse.starttime;
-  usage = total / dif;  
+  float total = procUse.utime + procUse.stime + procUse.cstime;  // cstime for children proceses
+  float seconds = up - ( procUse.starttime / sysconf(_SC_CLK_TCK));
+  usage = 100 * ((total / sysconf(_SC_CLK_TCK)) / seconds);
 
   return usage;
 }

@@ -23,6 +23,7 @@ class Process {
  private:
   int pid;
   float usage;  
+  
 };
 
 #endif
