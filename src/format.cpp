@@ -4,7 +4,7 @@
 
 using std::string;
 
-string FormatTime(long n){
+string FormatTime(int n){
   if (n < 10){
     return "0" + std::to_string(n);
   } 
@@ -20,9 +20,9 @@ string FormatTime(long n){
 string Format::ElapsedTime(long seconds) { 
   string t="";
   
-  long m = seconds/60;
-  long h = m/60;
-  long s = seconds%60;
+  int h = seconds/3600;
+  int m = seconds%3600 / 60;
+  int s = seconds%3600 % 60;
 
 
   return FormatTime(h)+ ":" + FormatTime(m) + ":" + FormatTime(s); 
