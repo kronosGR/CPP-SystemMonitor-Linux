@@ -3,13 +3,19 @@
 
 class Processor {
  public:
-  float Utilization();  // TODO: See src/processor.cpp
+  float Utilization();  //  See src/processor.cpp
 
   // Declare any necessary private members
  private:
+  struct Jiffies{
+    long total;
+    long work;
+    long idle;
+  };
+
+  Jiffies CpuReading();
   float totalIdleT;
   float totalUseT;
-  
 };
 
 #endif
