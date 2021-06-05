@@ -327,15 +327,17 @@ string LinuxParser::Command(int pid) {
 // Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Ram(int pid) { 
-  string line, k, v, ram = "";
+  string line, k, kb, v, ram = "";
   std::ifstream fs(kProcDirectory + std::to_string(pid) + kStatusFilename);
   if (fs.is_open()){
     while(std::getline(fs, line)){
-      std::remove_if(line.begin(), line.end(), isspace);
+      //std::remove_if(line.begin(), line.end(), isspace);
       std::replace(line.begin(), line.end(), ':', ' ');
       std::istringstream ls(line);
-      while(ls >> k >> v){
-        if (k == "VmSize") ram = v;        
+      while(ls >> k >> v >> kb){
+        if (k == "VmSize") {
+          ram = v;      
+        }
       }
     }
   }

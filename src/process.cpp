@@ -39,8 +39,12 @@ string Process::Command() {
 
 // Return this process's memory utilization
 string Process::Ram() { 
-  string ram = LinuxParser::Ram(pid);
-  return ram;
+  std::string tmp = LinuxParser::Ram(pid);
+  long ram = 0;
+  if (tmp.size()>0)
+    ram = std::stol(tmp) / 1024;
+
+  return std::to_string(ram) + " MB";
 }
 
 // Return the user (name) that generated this process
