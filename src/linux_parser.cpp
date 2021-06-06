@@ -97,6 +97,7 @@ float LinuxParser::MemoryUtilization() {
   } else {
     std::cout << "Problem reading the file\n";
   }
+  fs.close();
   return (total - free) / total;
  } 
 
@@ -117,6 +118,7 @@ long LinuxParser::UpTime() {
   } else {
     std::cout << "Problem reading the file\n";
   }
+  fs.close();
   return finalTime;
 } 
 
@@ -139,6 +141,7 @@ long LinuxParser::Jiffies() {
         guest + guest_nice;
   }
   
+  fs.close();
   return jiffies;
 }
 
@@ -170,6 +173,7 @@ long LinuxParser::ActiveJiffies(int pid) {
         std::stol(items[CSTIME_INDEX])  / sysconf(_SC_CLK_TCK) + 
         std::stol(items[STARTTIME_INDEX]) / sysconf(_SC_CLK_TCK)) * 60 ;
   }
+  fs.close();
   return activeJiffies;  
  }
 
@@ -189,6 +193,7 @@ long LinuxParser::ActiveJiffies() {
     // 1 sec = 60 jiffies if i am not wrong
     activeJiffies = (up - idle) * 60;
   }
+  fs.close();
   return activeJiffies;
 }
 
@@ -208,6 +213,7 @@ long LinuxParser::IdleJiffies() {
     // 1 sec = 60 jiffies if i am not wrong
     idleJiffies = idle * 60;
   }
+  fs.close();
   return idleJiffies;
 }
 
@@ -244,6 +250,7 @@ vector<string> LinuxParser::CpuUtilization() {
               } 
     }
   }
+  fs.close();
   return cpu;
 }
 LinuxParser::processUsage LinuxParser::CpuUtilForProc(int pid){
@@ -272,6 +279,7 @@ LinuxParser::processUsage LinuxParser::CpuUtilForProc(int pid){
     procUse.cstime = std::stol(items[CSTIME_INDEX]) / sysconf(_SC_CLK_TCK);
     procUse.starttime = std::stol(items[STARTTIME_INDEX]) / sysconf(_SC_CLK_TCK);
   }
+  fs.close();
   return procUse;
 }
 
@@ -291,6 +299,7 @@ int LinuxParser::TotalProcesses() {
 
     }
   }
+  fs.close();
   return processes;
  }
 
@@ -306,9 +315,8 @@ int LinuxParser::RunningProcesses() {
           if (k == "procs_running") processes = std::stoi(v);
         }
       }
-    
-    
   }
+  fs.close();
   return processes;
 }
 
@@ -320,6 +328,7 @@ string LinuxParser::Command(int pid) {
   if (fs.is_open()){
     std::getline(fs, cmd);
   }
+  fs.close();
   return cmd;
  }
 
@@ -334,12 +343,13 @@ string LinuxParser::Ram(int pid) {
       std::replace(line.begin(), line.end(), ':', ' ');
       std::istringstream ls(line);
       while(ls >> k >> v >> kb){
-        if (k == "VmSize") {
+        if (k == "VmData") {
           ram = v;      
         }
       }
     }
   }
+  fs.close();
   return ram;
  }
 
@@ -358,6 +368,7 @@ string LinuxParser::Uid(int pid) {
       }
     }
   }
+  fs.close();
   return uid;
 }
 
@@ -376,6 +387,7 @@ string LinuxParser::User(int pid) {
       }
     }
   }
+  fs.close();
   return usr;
 }
 
@@ -396,7 +408,10 @@ long LinuxParser::UpTime(int pid) {
     std::istream_iterator<string> end;
     std::vector<string> items(begin, end);
     
-    uptime = std::stol(items[START_TIME_INDEX]) / sysconf(_SC_CLK_TCK);
+    // changed the result after the feedback
+    uptime = UpTime() - std::stol(items[START_TIME_INDEX]) / sysconf(_SC_CLK_TCK);
   }
+  fs.close();
+  
   return uptime;
 }

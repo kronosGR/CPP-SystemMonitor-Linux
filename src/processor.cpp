@@ -29,5 +29,5 @@ float Processor::Utilization() {
   long idleOverPeriod = secondReading.idle - firstReading.idle;
   long totalOverPeriod = secondReading.total - firstReading.total;
 
-  return (float)(totalOverPeriod - idleOverPeriod)  / totalOverPeriod;
+  return static_cast<float>(totalOverPeriod - idleOverPeriod)  / totalOverPeriod;
 }

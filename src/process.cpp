@@ -27,14 +27,14 @@ float Process::CpuUtilization() {
   long up = LinuxParser::UpTime();
   float total = procUse.utime + procUse.stime + procUse.cstime;  // cstime for children proceses
   float seconds = up - ( procUse.starttime / sysconf(_SC_CLK_TCK));
-  usage = 100 * ((total / sysconf(_SC_CLK_TCK)) / seconds);
+  usage = ((total / sysconf(_SC_CLK_TCK)) / seconds);
 
   return usage;
 }
 
 // Return the command that generated this process
 string Process::Command() { 
-  return LinuxParser::Command(pid);
+  return LinuxParser::Command(pid).substr(0,50) + "...";
 }
 
 // Return this process's memory utilization
@@ -44,7 +44,7 @@ string Process::Ram() {
   if (tmp.size()>0)
     ram = std::stol(tmp) / 1024;
 
-  return std::to_string(ram) + " MB";
+  return std::to_string(ram);
 }
 
 // Return the user (name) that generated this process
